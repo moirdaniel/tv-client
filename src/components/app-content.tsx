@@ -6,80 +6,61 @@ import VideoPlayer from "./video-player";
 import { useChannelContext } from "../context/channel-context";
 import { useKeyboardNavigation } from "./keyboard-navigation";
 import { useAuth } from "../context/auth-context";
+import RemoteControlHelp from "./remote-control-help";
+import AppLoader from "./app-loader";
 
 const AppContent = () => {
-  const { selectedChannel, orientation } = useChannelContext();
+  const { selectedChannel, orientation, isLoading } = useChannelContext();
   const { activeSection, setActiveSection } = useKeyboardNavigation();
-  const [showSidebar, setShowSidebar] = React.useState(true);
-  const { isAuthenticated, isAuthEnabled, user } = useAuth();
-  const [showLoginModal, setShowLoginModal] = React.useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = React.useState(true);
   
-  // Si la autenticación está habilitada y el usuario no está autenticado, mostrar pantalla de login
-  React.useEffect(() => {
-    if (isAuthEnabled && !isAuthenticated && !user) {
-      setShowLoginModal(true);
-    }
-  }, [isAuthEnabled, isAuthenticated, user]);
+  // Obtener registerMenuToggle del contexto de navegación por teclado
+  const { registerMenuToggle } = useKeyboardNavigation();
   
-  // Efecto para manejar clics en los componentes
+  // Registrar la función para alternar la visibilidad de la barra lateral
   React.useEffect(() => {
-    const handleSidebarClick = () => setActiveSection('sidebar');
-    const handleChannelListClick = () => setActiveSection('channelList');
-    const handleVideoPlayerClick = () => setActiveSection('videoPlayer');
-    
-    const sidebarElement = document.querySelector('.channel-list');
-    const channelListElement = document.querySelector('.channel-list + .flex-1');
-    const videoPlayerElement = document.querySelector('.video-player-container');
-    
-    if (sidebarElement) {
-      sidebarElement.addEventListener('click', handleSidebarClick);
+    if (registerMenuToggle) {
+      registerMenuToggle(() => {
+        setIsSidebarVisible(prev => !prev);
+      });
     }
-    
-    if (channelListElement) {
-      channelListElement.addEventListener('click', handleChannelListClick);
+  }, [registerMenuToggle]);
+  
+  // Efecto para actualizar el título del documento
+  React.useEffect(() => {
+    if (selectedChannel) {
+      document.title = `MT Media TV - ${selectedChannel.name}`;
+    } else {
+      document.title = "MT Media TV";
     }
-    
-    if (videoPlayerElement) {
-      videoPlayerElement.addEventListener('click', handleVideoPlayerClick);
-    }
-    
-    return () => {
-      if (sidebarElement) {
-        sidebarElement.removeEventListener('click', handleSidebarClick);
-      }
-      
-      if (channelListElement) {
-        channelListElement.removeEventListener('click', handleChannelListClick);
-      }
-      
-      if (videoPlayerElement) {
-        videoPlayerElement.removeEventListener('click', handleVideoPlayerClick);
-      }
-    };
-  }, [setActiveSection]);
+  }, [selectedChannel]);
+  
+  // Mostrar el loader si está cargando
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 mx-auto"></div>
+        <p className="mt-4">Cargando canales...</p>
+      </div>
+    </div>;
+  }
   
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground">
       <Header />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <div className="flex-1 flex flex-col">
+        {isSidebarVisible && (
+          <div className={`w-64 border-r border-gray-800 flex-shrink-0 overflow-hidden ${activeSection === 'sidebar' ? 'ring-2 ring-primary-500 ring-inset' : ''}`}>
+            <Sidebar />
+          </div>
+        )}
+        <div className="flex-1 overflow-hidden">
           <ChannelList />
         </div>
-        <div className="w-[40%] bg-black">
+        <div className={`${orientation === 'portrait' ? 'w-2/3' : 'w-[40%]'} bg-black flex-shrink-0`}>
           <VideoPlayer />
         </div>
       </div>
-      
-      {/* Mostrar modal de login si es necesario */}
-      {showLoginModal && (
-        <LoginModal 
-          isOpen={showLoginModal} 
-          onClose={() => setShowLoginModal(false)} 
-        />
-      )}
-      
-      {/* ... otros modales ... */}
     </div>
   );
 };

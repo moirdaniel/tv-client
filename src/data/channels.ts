@@ -1,4 +1,3 @@
-
 import { Channel } from "../types/channel";
 
 export const channels: Channel[] = [
@@ -1733,7 +1732,7 @@ export const channels: Channel[] = [
     "_id": "6838eef7b450735f1b8af306",
     "id": 197,
     "name": "VLTV",
-    "url": "https://andromeda3.trapemn.tv:1936/regionales/vltv.stream/playlist.m3u8",
+    "url": "https://andromeda3.trapemn.tv:19360/lascabrastv/lascabrastv.m3u8",
     "logoUrl": "https://cdn.m3u.cl/logo/343_VLTV.png",
     "enabled": true,
     "category": [
@@ -1891,7 +1890,7 @@ export const channels: Channel[] = [
     "logoUrl": "https://cdn.m3u.cl/logo/350_ClickTv.png",
     "enabled": true,
     "category": [
-      "No se"
+      "Chile"
     ]
   },
   {
@@ -2492,8 +2491,8 @@ export const channels: Channel[] = [
     "_id": "6838eef7b450735f1b8af360",
     "id": 287,
     "name": "El Conquistador La Serena",
-    "url": "https://v4.tustreaming.cl:443/elcqlaserena/index.m3u8",
-    "logoUrl": "https://cdn.m3u.cl/logo/1647_El_Conquistador_La_Serena.png",
+    "url": "https://redirector.rudo.video/hls-video/931b584451fa6dd1313ee66efbfd5802e3f3bcea/elconquistadortv/elconquistadortv.smil/playlist.m3u8",
+    "logoUrl": "https://cdn.m3u.cl/logo/1478_El_Conquistador_Santiago.png",
     "enabled": true,
     "category": [
       "Radio"
@@ -2503,8 +2502,8 @@ export const channels: Channel[] = [
     "_id": "6838eef7b450735f1b8af361",
     "id": 288,
     "name": "Red Circle",
-    "url": "https://5e3483cba9114.streamlock.net:443/8016/8016/playlist.m3u8",
-    "logoUrl": "https://cdn.m3u.cl/logo/1403_Red_Circle.png",
+    "url": "https://5eaccbab48461.streamlock.net:1936/8256/8256/playlist.m3u8",
+    "logoUrl": "https://cdn.m3u.cl/logo/411_Interradio_TV.png",
     "enabled": true,
     "category": [
       "Musica"
@@ -2645,40 +2644,40 @@ export const channels: Channel[] = [
   {
     "_id": "6838eef7b450735f1b8af372",
     "id": 305,
-    "name": "Tributo Valentina",
-    "url": "https://vdochile.com:3795/hybrid/play.m3u8",
-    "logoUrl": "https://cdn.m3u.cl/logo/786_Tributo_Valentina.png",
+    "name": "TNE",
+    "url": "https://v2.tustreaming.cl/tnetv/index.m3u8",
+    "logoUrl": "https://cdn.m3u.cl/logo/168_TNE.png",
     "enabled": true,
     "category": [
-      "Musica"
+      "Chile"
     ]
   },
   {
     "_id": "6838eef7b450735f1b8af373",
     "id": 306,
-    "name": "Radio La Serena",
-    "url": "https://stmv5.voxtvhd.com.br/radiolaserena/radiolaserena/playlist.m3u8",
-    "logoUrl": "https://cdn.m3u.cl/logo/1125_Radio_La_Serena.png",
+    "name": "Televida HD",
+    "url": "https://tls-cl.cdnz.cl/televida/live/playlist.m3u8",
+    "logoUrl": "https://cdn.m3u.cl/logo/169_Televida_HD.png",
     "enabled": true,
     "category": [
-      "Radio"
+      "Religion"
     ]
   },
   {
     "_id": "6838eef7b450735f1b8af374",
     "id": 307,
-    "name": "Patagonia Radio TV",
-    "url": "https://video01.logicahost.com.br/grupomedia/grupomedia/playlist.m3u8",
-    "logoUrl": "https://cdn.m3u.cl/logo/974_Patagonia_Radio_TV.png",
+    "name": "Restaurando Vidas TV",
+    "url": "https://v4.tustreaming.cl/restaurandovida/index.m3u8",
+    "logoUrl": "https://cdn.m3u.cl/logo/351_Restaurando_Vidas_TV.png",
     "enabled": true,
     "category": [
-      "Radio"
+      "Religion"
     ]
   },
   {
     "_id": "6838eef7b450735f1b8af376",
     "id": 309,
-    "name": "Red Fueguina Radio",
+    "name": "Radio Fueguina Radio",
     "url": "https://stmv5.voxtvhd.com.br/redfueguina/redfueguina/playlist.m3u8",
     "logoUrl": "https://cdn.m3u.cl/logo/400_Red_Fueguina_Radio.png",
     "enabled": true,
@@ -2789,7 +2788,7 @@ export const channels: Channel[] = [
     "_id": "6838eef7b450735f1b8af380",
     "id": 319,
     "name": "Radio Navarino",
-    "url": "https://panel.tvstream.cl:1936/8000/8000/playlist.m3u8",
+    "url": "https://v2.tustreaming.cl/radionavarino/radionavarino/playlist.m3u8",
     "logoUrl": "https://cdn.m3u.cl/logo/1538_Radio_Navarino.png",
     "enabled": true,
     "category": [
@@ -2800,7 +2799,7 @@ export const channels: Channel[] = [
     "_id": "6838eef7b450735f1b8af381",
     "id": 320,
     "name": "Radio Las Nieves",
-    "url": "https://v2.tustreaming.cl/rln/index.m3u8",
+    "url": "https://v2.tustreaming.cl/radionavarrino/radionavarrino/playlist.m3u8",
     "logoUrl": "https://cdn.m3u.cl/logo/408_Radio_Las_Nieves.png",
     "enabled": true,
     "category": [
@@ -2865,9 +2864,9 @@ export const channels: Channel[] = [
   {
     "_id": "6838eef7b450735f1b8af388",
     "id": 327,
-    "name": "Radio Favorita",
-    "url": "https://streamyes.alsolnet.com/radiofavoritatv/live/playlist.m3u8",
-    "logoUrl": "https://cdn.m3u.cl/logo/417_Radio_Favorita.png",
+    "name": "Radio Camila TV",
+    "url": "https://panel.tvstream.cl:1936/8008/8008/playlist.m3u8",
+    "logoUrl": "https://cdn.m3u.cl/logo/410_Radio_Camila_TV.png",
     "enabled": true,
     "category": [
       "Radio"
@@ -3119,7 +3118,7 @@ export const channels: Channel[] = [
     "_id": "6838eef7b450735f1b8af3a5",
     "id": 356,
     "name": "Radio Agricultura",
-    "url": "https://redirector.rudo.video/hls-video/ey6283je82983je9823je8jowowiekldk9838274/921tv/921tv.smil/playlist.m3u8",
+    "url": "https://redirector.rudo.video/hls-video/ey6283je82983je9823je8jowowiekldk9838274/921tv/921tv.smil/playlist.m3u8?&PlaylistM3UCL",
     "logoUrl": "https://cdn.m3u.cl/logo/423_Radio_Agricultura.png",
     "enabled": true,
     "category": [
@@ -3154,17 +3153,6 @@ export const channels: Channel[] = [
     "name": "Pudahuel FM",
     "url": "https://unlimited2-cl-isp.dps.live/pudahueltv/pudahueltv.smil/playlist.m3u8",
     "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b0/Logo_pudahuel_2020.png",
-    "enabled": true,
-    "category": [
-      "Radio"
-    ]
-  },
-  {
-    "_id": "6838eef7b450735f1b8af3a9",
-    "id": 360,
-    "name": "Cooperativa",
-    "url": "https://unlimited1-cl-isp.dps.live/coopetv/coopetv.smil/playlist.m3u8",
-    "logoUrl": "https://cdn.m3u.cl/logo/422_Cooperativa.png",
     "enabled": true,
     "category": [
       "Radio"
@@ -3325,36 +3313,122 @@ export const channels: Channel[] = [
     ]
   },
   {
-    "_id": "6838eef7b450735f1b8af3bb",
-    "id": 378,
-    "name": "ADA TV",
-    "url": "https://stream.blserver.cl/hls/adatv/index.m3u8",
-    "logoUrl": "https://cdn.m3u.cl/logo/1638_ADA_TV.png",
-    "enabled": true,
-    "category": [
-      "Cultura"
-    ]
-  },
-  {
-    "_id": "6838eef7b450735f1b8af3bc",
-    "id": 379,
-    "name": "Canal 379",
-    "url": "https://stream.blserver.cl/hls/adatv/index.m3u8",
-    "logoUrl": "https://cdn.m3u.cl/logo/1638_ADA_TV.png",
-    "enabled": true,
-    "category": [
-      "Cultura"
-    ]
-  },
-  {
     "_id": "6838eef7b450735f1b8af3bd",
     "id": 380,
-    "name": "WWE Espa\u00f1ol 24Hrs",
-    "url": "https://www.youtube.com/watch?v=9M7Rkiih7uo",
-    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/0/03/WWE_Logo.svg",
+    "name": "Disney Channel East",
+    "url": "https://fl5.moveonjoy.com/DISNEY/index.m3u8",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/f/ff/2024_Disney_Channel_text_logo.svg",
     "enabled": true,
     "category": [
-      "Lucha Libre"
-    ]
+      "Peliculas y Series",
+      "USA",
+      "Kids"
+    ] 
   },
+  {
+    "_id": "6838eef7b450735f1b8af3be",
+    "id": 381,
+    "name": "Disney Junior East",
+    "url": "https://fl3.moveonjoy.com/DISNEY_JR/index.m3u8",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/f/ff/2024_Disney_Channel_text_logo.svg",
+    "enabled": true,
+    "category": [
+      "Peliculas y Series",
+      "USA",
+      "Kids"
+    ] 
+  },
+  {
+    "_id": "6838eef7b450735f1b8af3be1",
+    "id": 382,
+    "name": "Disney XD West",
+    "url": "https://fl3.moveonjoy.com/DISNEY_XD/index.m3u8",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/f/ff/2024_Disney_Channel_text_logo.svg",
+    "enabled": true,
+    "category": [
+      "Peliculas y Series",
+      "USA",
+      "Kids"
+    ] 
+  },
+  {
+    "_id": "6838eef7b450735f1b8af3b01",
+    "id": 383,
+    "name": "DMJ Cuzco",
+    "url": "https://stmv1.voxhdnet.com/dmjsurtv/dmjsurtv/playlist.m3u8",
+    "logoUrl": "https://tvgratisperu.com/assets/img/canales/peru/dmj.png",
+    "enabled": true,
+    "category": [
+      "Peliculas y Series",
+      "Peru",
+    ] 
+  },
+  {
+    "_id": "6838eef7b450735f1b8af3b02",
+    "id": 384,
+    "name": "Ceacom",
+    "url": "https://eu1.servers10.com:8081/ceacom/index.m3u8",
+    "logoUrl": "",
+    "enabled": true,
+    "category": [
+      "Peliculas y Series",
+      "Bolivia",
+    ] 
+  },
+  {
+    "_id": "6838eef7b450735f1b8af3b03",
+    "id": 385,
+    "name": "Sony Cine",
+    "url": "https://a-cdn.klowdtv.com/live1/cine_720p/playlist.m3u8",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Sony_Channel_Logo.png",
+    "enabled": true,
+    "category": [
+      "Peliculas y Series",
+    ] 
+  },
+  {
+    "_id": "6838eef7b450735f1b8af3b04",
+    "id": 386,
+    "name": "Los Santos TV",
+    "url": "https://lstv.duckdns.org:449/hls/lstv.m3u8",
+    "logoUrl": "",
+    "enabled": true,
+    "category": [
+      "Peliculas y Series",
+    ] 
+  },
+  {
+    "_id": "6838eef7b450735f1b8af3b05",
+    "id": 387,
+    "name": "Sony Channel",
+    "url": "https://fl3.moveonjoy.com/Sony_Movie_Channel/index.m3u8",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Sony_Channel_Logo.png",
+    "enabled": true,
+    "category": [
+      "Peliculas y Series",
+    ] 
+  },
+  {
+    "_id": "6838eef7b450735f1b8af3b06",
+    "id": 388,
+    "name": "Sony Canal Novelas",
+    "url": "https://a89829b8dca2471ab52ea9a57bc28a35.mediatailor.us-east-1.amazonaws.com/v1/master/0fb304b2320b25f067414d481a779b77db81760d/CanelaTV_SonyCanalNovelas/playlist.m3u8",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Sony_Channel_Logo.png",
+    "enabled": true,
+    "category": [
+      "Peliculas y Series",
+    ] 
+  },
+  {
+    "_id": "6838eef7b450735f1b8af3b07",
+    "id": 389,
+    "name": "Suyai Tv",
+    "url": "https://signal.suyaitv.cl/live/35/playlist.m3u8?username=ZZDemoIPTVGH&password=9PcdCnFxUe",
+    "logoUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d7/LOGO_SUYAI2.jpg",
+    "enabled": true,
+    "category": [
+      "Peliculas y Series",
+      "Chile"
+    ] 
+  }
 ];

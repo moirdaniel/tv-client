@@ -23,11 +23,11 @@ export const filterChannelsByCategory = (
   category: string, 
   favorites: string[] = []
 ): Channel[] => {
-  if (category === "ALL") {
+  if (category === "TODOS") {
     return channels;
   }
   
-  if (category === "FAVOURITE") {
+  if (category === "FAVORITO") {
     return channels.filter(channel => favorites.includes(channel._id));
   }
   
@@ -37,10 +37,18 @@ export const filterChannelsByCategory = (
 };
 
 /**
- * Ordena canales por nombre alfabéticamente
+ * Ordena canales por nombre alfabéticamente y luego por ID
  */
 export const sortChannelsByName = (channels: Channel[]): Channel[] => {
-  return [...channels].sort((a, b) => a.name.localeCompare(b.name));
+  return [...channels].sort((a, b) => {
+    // Primero ordenar por nombre
+    const nameComparison = a.name.localeCompare(b.name);
+    // Si los nombres son iguales, ordenar por ID
+    if (nameComparison === 0) {
+      return a.id - b.id;
+    }
+    return nameComparison;
+  });
 };
 
 /**

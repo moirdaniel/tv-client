@@ -16,13 +16,19 @@ const VideoPlayer: React.FC = () => {
   const [volume, setVolume] = React.useState(0.8);
   const [isMuted, setIsMuted] = React.useState(false);
   const [showControls, setShowControls] = React.useState(false);
-  const { isFullscreen, toggleFullscreen } = useFullscreen();
+  const { isFullscreen, toggleFullscreen, setIsFullscreen } = useFullscreen();
   const { isCastAvailable, isCasting, startCasting, stopCasting } = useCasting();
   const videoContainerRef = React.useRef<HTMLDivElement>(null);
   const controlsTimeout = React.useRef<NodeJS.Timeout | null>(null);
   const [currentTime, setCurrentTime] = React.useState<Date>(new Date());
   
-  const { registerVolumeControl, registerMuteToggle, registerFullscreenToggle, keyboardNavigation, activeSection } = useKeyboardNavigation();
+  const { 
+    registerVolumeControl, 
+    registerMuteToggle, 
+    registerFullscreenToggle, 
+    registerChannelChange,
+    activeSection 
+  } = useKeyboardNavigation();
   
   // Registrar funciones de control
   React.useEffect(() => {
@@ -41,7 +47,7 @@ const VideoPlayer: React.FC = () => {
     });
     
     registerFullscreenToggle(() => {
-      toggleFullscreen();
+      handleToggleFullscreen();
     });
   }, [registerVolumeControl, registerMuteToggle, registerFullscreenToggle, isMuted]);
   
@@ -93,12 +99,17 @@ const VideoPlayer: React.FC = () => {
   // Detectar cambios en el estado de pantalla completa
   React.useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+      // Usar la función del contexto en lugar de una función local
+      if (document.fullscreenElement) {
+        setIsFullscreen(true);
+      } else {
+        setIsFullscreen(false);
+      }
     };
     
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, []);
+  }, [setIsFullscreen]);
   
   // Aplicar configuración de reproducción automática
   React.useEffect(() => {
@@ -152,12 +163,39 @@ const VideoPlayer: React.FC = () => {
   
   // Registrar función para cambiar de canal
   React.useEffect(() => {
-    if (keyboardNavigation && typeof keyboardNavigation.registerChannelChange === 'function') {
-      keyboardNavigation.registerChannelChange((direction: number) => {
-        changeChannel(direction);
-      });
+    registerChannelChange((direction: number) => {
+      changeChannel(direction);
+    });
+  }, [registerChannelChange, channels, selectedChannel, setSelectedChannel]);
+  
+  // Optimizar para pantalla completa en dispositivos móviles
+  React.useEffect(() => {
+    // Detectar si es un dispositivo móvil
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+    
+    // Si es un dispositivo móvil y está en modo landscape, intentar pantalla completa automáticamente
+    if (isMobileDevice && orientation === 'landscape' && !isFullscreen) {
+      // Esperar un momento para que el usuario interactúe primero (los navegadores requieren interacción)
+      const autoFullscreenTimeout = setTimeout(() => {
+        // Mostrar un mensaje sugiriendo pantalla completa
+        const shouldAutoFullscreen = localStorage.getItem('autoFullscreen') !== 'false';
+        
+        if (shouldAutoFullscreen) {
+          // Intentar entrar en pantalla completa después de una interacción del usuario
+          const handleUserInteraction = () => {
+            handleToggleFullscreen();
+            document.removeEventListener('click', handleUserInteraction);
+          };
+          
+          document.addEventListener('click', handleUserInteraction, { once: true });
+        }
+      }, 3000);
+      
+      return () => clearTimeout(autoFullscreenTimeout);
     }
-  }, [keyboardNavigation, channels, selectedChannel, setSelectedChannel]);
+  }, [orientation, isFullscreen]);
   
   // Add casting toggle function
   const handleCastToggle = () => {
@@ -165,6 +203,15 @@ const VideoPlayer: React.FC = () => {
       stopCasting();
     } else if (selectedChannel) {
       startCasting(selectedChannel.url, selectedChannel.name, selectedChannel.logoUrl);
+    }
+  };
+  
+  // Corregir la función toggleFullscreen para usar correctamente el ref del contenedor
+  const handleToggleFullscreen = () => {
+    if (videoContainerRef.current) {
+      toggleFullscreen(videoContainerRef.current);
+    } else {
+      toggleFullscreen();
     }
   };
   
@@ -192,6 +239,7 @@ const VideoPlayer: React.FC = () => {
                 attributes: {
                   quality: highQuality ? 'high' : 'medium',
                   crossOrigin: 'anonymous',
+                  playsInline: true, // Añadir para mejor soporte en iOS
                 }
               }
             }}
@@ -199,6 +247,13 @@ const VideoPlayer: React.FC = () => {
         ) : (
           <div className="w-full h-full bg-black flex items-center justify-center">
             <p className="text-gray-400">Seleccione un canal para ver</p>
+          </div>
+        )}
+        
+        {/* Añadir indicador de orientación cuando esté en modo portrait */}
+        {orientation === 'portrait' && !isFullscreen && (
+          <div className="absolute top-2 right-2 bg-black/70 rounded-full p-2 animate-pulse">
+            <Icon icon="lucide:smartphone-rotate" width={24} height={24} className="text-white" />
           </div>
         )}
         
@@ -233,7 +288,7 @@ const VideoPlayer: React.FC = () => {
                   onClick={() => handleVolumeChange(-0.1)}
                   title="Bajar volumen"
                 >
-                  <Icon icon="lucide:volume" width={24} height={24} />
+                  <Icon icon="lucide:volume-1" width={24} height={24} />
                 </button>
                 <span className="text-xs text-white text-center">Volumen -</span>
               </div>
@@ -259,7 +314,7 @@ const VideoPlayer: React.FC = () => {
                   onClick={() => handleVolumeChange(0.1)}
                   title="Subir volumen"
                 >
-                  <Icon icon="lucide:volume-1" width={24} height={24} />
+                  <Icon icon="lucide:volume-2" width={24} height={24} />
                 </button>
                 <span className="text-xs text-white text-center">Volumen +</span>
               </div>
@@ -267,7 +322,7 @@ const VideoPlayer: React.FC = () => {
               <div className="flex flex-col items-center">
                 <button 
                   className="text-white mb-1 p-2 hover:bg-white/10 rounded-full transition-colors"
-                  onClick={toggleFullscreen}
+                  onClick={handleToggleFullscreen}
                   title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
                 >
                   <Icon 
@@ -276,7 +331,9 @@ const VideoPlayer: React.FC = () => {
                     height={24} 
                   />
                 </button>
-                <span className="text-xs text-white text-center">Maximizar</span>
+                <span className="text-xs text-white text-center">
+                  {isFullscreen ? "Minimizar" : "Maximizar"}
+                </span>
               </div>
               
               <div className="flex flex-col items-center">

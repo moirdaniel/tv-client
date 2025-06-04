@@ -3,21 +3,15 @@ import { safeLocalStorage } from "../utils/error-handler";
 
 interface SettingsContextType {
   showChannelNumbers: boolean;
-  setShowChannelNumbers: (show: boolean) => void;
-  autoPlay: boolean;
-  setAutoPlay: (autoPlay: boolean) => void;
-  highQuality: boolean;
-  setHighQuality: (highQuality: boolean) => void;
-  subtitles: boolean;
-  setSubtitles: (subtitles: boolean) => void;
-  showAds: boolean;
-  setShowAds: (showAds: boolean) => void;
+  setShowChannelNumbers: (value: boolean) => void;
   use24HourFormat: boolean;
-  toggleTimeFormat: () => void;
-  darkMode: boolean;
-  toggleDarkMode: () => void;
-  notifications: boolean;
-  setNotifications: (enabled: boolean) => void;
+  setUse24HourFormat: (value: boolean) => void;
+  showClock: boolean;
+  setShowClock: (value: boolean) => void;
+  enableKeyboardNavigation: boolean;
+  setEnableKeyboardNavigation: (value: boolean) => void;
+  useLocalData: boolean;
+  setUseLocalData: (value: boolean) => void;
 }
 
 const defaultSettings = {
@@ -29,6 +23,17 @@ const defaultSettings = {
   use24HourFormat: true, // Cambiado a true para usar formato 24h por defecto
   darkMode: true,
   notifications: true
+};
+
+const SETTINGS_KEYS = {
+  SHOW_CHANNEL_NUMBERS: 'settings_show_channel_numbers',
+  AUTO_PLAY: 'settings_auto_play',
+  HIGH_QUALITY: 'settings_high_quality',
+  SUBTITLES: 'settings_subtitles',
+  SHOW_ADS: 'settings_show_ads',
+  USE_24_HOUR_FORMAT: 'settings_use_24_hour_format',
+  DARK_MODE: 'settings_dark_mode',
+  NOTIFICATIONS: 'settings_notifications'
 };
 
 const SettingsContext = React.createContext<SettingsContextType | undefined>(undefined);
@@ -55,9 +60,34 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     safeLocalStorage.setItem('settings', JSON.stringify(settings));
   }, [settings]);
   
-  const setShowChannelNumbers = (show: boolean) => {
-    setSettings(prev => ({ ...prev, showChannelNumbers: show }));
-  };
+  // Añadir estado para controlar el uso de datos locales vs API
+  const [useLocalData, setUseLocalData] = React.useState<boolean>(() => {
+    try {
+      const savedValue = safeLocalStorage.getItem('useLocalData');
+      // Si no hay valor guardado, usar el valor de la variable de ambiente
+      if (savedValue === null) {
+        return import.meta.env.VITE_USE_LOCAL_DATA === "true";
+      }
+      return savedValue === 'true';
+    } catch (error) {
+      console.error('Error loading useLocalData setting:', error);
+      return import.meta.env.VITE_USE_LOCAL_DATA === "true";
+    }
+  });
+  
+  // Guardar la configuración de datos locales en localStorage
+  React.useEffect(() => {
+    try {
+      safeLocalStorage.setItem('useLocalData', useLocalData.toString());
+    } catch (error) {
+      console.error('Error saving useLocalData setting:', error);
+    }
+  }, [useLocalData]);
+  
+  // Eliminar estas funciones duplicadas ya que están en el objeto settings
+  // const setShowChannelNumbers = (show: boolean) => {
+  //   setSettings(prev => ({ ...prev, showChannelNumbers: show }));
+  // };
   
   const setAutoPlay = (autoPlay: boolean) => {
     setSettings(prev => ({ ...prev, autoPlay }));
@@ -88,16 +118,28 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setSettings(prev => ({ ...prev, notifications: enabled }));
   };
   
+  // Eliminar esta duplicación - ya existe en el objeto settings
+  // const [showChannelNumbers, setShowChannelNumbers] = React.useState(() => 
+  //   safeLocalStorage.getItem(SETTINGS_KEYS.SHOW_CHANNEL_NUMBERS, 'true') === 'true'
+  // );
+  
+  const toggleChannelNumbers = () => {
+    // Modificar para usar el estado settings en lugar del estado duplicado
+    setSettings(prev => ({ ...prev, showChannelNumbers: !prev.showChannelNumbers }));
+  };
+  
   const value = {
     ...settings,
-    setShowChannelNumbers,
+    // Eliminar setShowChannelNumbers ya que no se usa directamente
     setAutoPlay,
     setHighQuality,
     setSubtitles,
     setShowAds,
     toggleTimeFormat,
     toggleDarkMode,
-    setNotifications
+    setNotifications,
+    // Usar showChannelNumbers desde settings
+    toggleChannelNumbers
   };
   
   return (

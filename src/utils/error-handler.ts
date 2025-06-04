@@ -1,82 +1,97 @@
-// Utilidad para manejar errores y logging
+// Utilidades para manejo seguro de errores
 
-// Función para manejar errores de forma segura
-export const logError = (error: any, context: string = 'General') => {
-  console.error(`[ERROR][${context}]`, error);
-  
-  // Opcional: enviar a un servicio de monitoreo
-  // reportErrorToService(error, context);
+// Función para manejar errores de tiempo
+export const handleTimeError = (error: any, source: string): Date => {
+  console.error(`Error en ${source}:`, error);
+  return new Date(); // Devolver la fecha actual como fallback
 };
 
-// Función para logs informativos
-export const logInfo = (message: string, context: string = 'General') => {
-  console.info(`[INFO][${context}]`, message);
-};
-
-// Función para logs de advertencia
-export const logWarning = (message: string, context: string = 'General') => {
-  console.warn(`[WARNING][${context}]`, message);
+// Función para formatear tiempo de manera segura
+export const safeFormatTime = (date: Date, use24HourFormat: boolean, source: string): string => {
+  try {
+    if (use24HourFormat) {
+      return date.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      });
+    } else {
+      return date.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      });
+    }
+  } catch (error) {
+    console.error(`Error en ${source}:`, error);
+    return date.getHours() + ':' + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+  }
 };
 
 // Wrapper seguro para localStorage
 export const safeLocalStorage = {
-  getItem: (key: string): string | null => {
+  getItem: (key: string, defaultValue: string = ''): string => {
     try {
-      return localStorage.getItem(key);
+      const value = localStorage.getItem(key);
+      return value !== null ? value : defaultValue;
     } catch (error) {
-      logError(`Error al obtener ${key} de localStorage: ${error}`, 'safeLocalStorage');
-      return null;
+      console.error(`Error al leer localStorage[${key}]:`, error);
+      return defaultValue;
     }
   },
-  
   setItem: (key: string, value: string): void => {
     try {
       localStorage.setItem(key, value);
     } catch (error) {
-      logError(`Error al guardar ${key} en localStorage: ${error}`, 'safeLocalStorage');
+      console.error(`Error al escribir localStorage[${key}]:`, error);
     }
   },
-  
   removeItem: (key: string): void => {
     try {
       localStorage.removeItem(key);
     } catch (error) {
-      logError(`Error al eliminar ${key} de localStorage: ${error}`, 'safeLocalStorage');
-    }
-  },
-  
-  clear: (): void => {
-    try {
-      localStorage.clear();
-    } catch (error) {
-      logError(error, 'safeLocalStorage.clear');
+      console.error(`Error al eliminar localStorage[${key}]:`, error);
     }
   }
 };
 
-// Añadir la función safeJsonParse que falta
-export const safeJsonParse = <T>(json: string, fallback: T): T => {
+// Función para parsear JSON de manera segura
+export function safeJsonParse<T>(json: string, defaultValue: T): T {
   try {
     return JSON.parse(json) as T;
   } catch (error) {
-    logError(`Error al analizar JSON: ${error}`, 'safeJsonParse');
-    return fallback;
+    console.error('Error al parsear JSON:', error);
+    return defaultValue;
   }
-};
+}
 
-// Añadir la función safeFetch que falta
-export const safeFetch = async <T>(
+// Función para registrar errores de manera consistente
+export function logError(error: any, source: string): void {
+  console.error(`Error en ${source}:`, error);
+  // Aquí se podría implementar lógica adicional como enviar a un servicio de monitoreo
+}
+
+// Función para verificar si un elemento es un input
+export function isInputElement(element: Element | null): boolean {
+  if (!element) return false;
+  
+  const tagName = element.tagName.toLowerCase();
+  return tagName === 'input' || tagName === 'textarea' || tagName === 'select';
+}
+
+// Añadir función safeFetch que faltaba
+export async function safeFetch<T>(
   url: string, 
   options: RequestInit = {}, 
-  timeoutMs: number = 10000,
-  fallbackData: T
-): Promise<T> => {
+  timeout: number = 10000,
+  fallbackValue: T | null = null
+): Promise<T> {
   try {
     // Crear un controlador de aborto para el timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
     
-    // Realizar la petición con el controlador de aborto
+    // Hacer la petición con el controlador de aborto
     const response = await fetch(url, {
       ...options,
       signal: controller.signal
@@ -87,134 +102,41 @@ export const safeFetch = async <T>(
     
     // Verificar si la respuesta es correcta
     if (!response.ok) {
-      throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
     }
     
-    // Devolver los datos
-    return await response.json();
+    // Parsear la respuesta como JSON
+    const data = await response.json();
+    return data as T;
   } catch (error) {
-    // Si es un error de timeout
-    if (error.name === 'AbortError') {
-      logError(`La petición a ${url} excedió el tiempo límite de ${timeoutMs}ms`, 'safeFetch');
-    } else {
-      logError(`Error al realizar fetch a ${url}: ${error}`, 'safeFetch');
+    // Si hay un valor de fallback, devolverlo
+    if (fallbackValue !== null) {
+      logError(error, `safeFetch(${url})`);
+      return fallbackValue;
     }
     
-    // Devolver datos de respaldo
-    return fallbackData;
+    // Si no hay valor de fallback, propagar el error
+    throw error;
   }
-};
+}
 
-// Añadir función para manejar errores de formato de hora
-export const handleTimeFormatError = (error: any) => {
-  console.error("Error al procesar el formato de hora:", error);
-  
-  // Intentar restaurar el formato predeterminado (24h)
+// Añadir funciones de log que faltaban
+export function logWarning(message: string, source: string): void {
+  console.warn(`Advertencia en ${source}: ${message}`);
+}
+
+export function logInfo(message: string, source: string): void {
+  console.info(`Info en ${source}: ${message}`);
+}
+
+// Función para enfocar el input de búsqueda de manera segura
+export function focusSearchInput(): void {
   try {
-    safeLocalStorage.setItem('settings', JSON.stringify({ 
-      ...JSON.parse(safeLocalStorage.getItem('settings') || '{}'),
-      use24HourFormat: true 
-    }));
-    console.log("Formato de hora restaurado a 24h");
-  } catch (restoreError) {
-    console.error("No se pudo restaurar el formato de hora:", restoreError);
-  }
-  
-  // Devolver true para indicar que se usa formato 24h
-  return true;
-};
-
-// Añadir función para manejar errores de tiempo
-export const handleTimeError = (error: any, context: string = 'TimeError'): Date => {
-  logError(`Error al procesar tiempo: ${error}`, context);
-  
-  // Devolver una fecha actual como fallback
-  return new Date();
-};
-
-// Función para formatear tiempo de manera segura - mejorada con mejor manejo de errores
-export const safeFormatTime = (date: Date | null | undefined, use24HourFormat: boolean = true, context: string = 'TimeFormat') => {
-  try {
-    // Verificar si date es válido
-    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-      logWarning(`Fecha inválida: ${date}. Usando fecha actual como respaldo.`, context);
-      date = new Date(); // Usar fecha actual como respaldo
-    }
-    
-    if (use24HourFormat) {
-      return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-    } else {
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const formattedHours = hours % 12 || 12;
-      return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    const searchInput = document.querySelector('input[type="search"], input[placeholder*="buscar" i], input[placeholder*="search" i]');
+    if (searchInput instanceof HTMLInputElement) {
+      searchInput.focus();
     }
   } catch (error) {
-    logError(`Error al formatear tiempo: ${error}`, context);
-    return use24HourFormat ? '00:00' : '12:00 AM';
+    console.error('Error al enfocar input de búsqueda:', error);
   }
-};
-
-// Añadir función para manejar favoritos de manera segura
-export const safeFavorites = {
-  add: (userId: string, channelId: string): string[] => {
-    try {
-      const key = `mt_media_favorites_${userId}`;
-      const storedFavorites = safeLocalStorage.getItem(key);
-      const favorites = storedFavorites ? safeJsonParse<string[]>(storedFavorites, []) : [];
-      
-      if (!favorites.includes(channelId)) {
-        favorites.push(channelId);
-        safeLocalStorage.setItem(key, JSON.stringify(favorites));
-      }
-      
-      return favorites;
-    } catch (error) {
-      logError(error, 'safeFavorites.add');
-      return [];
-    }
-  },
-  
-  remove: (userId: string, channelId: string): string[] => {
-    try {
-      const key = `mt_media_favorites_${userId}`;
-      const storedFavorites = safeLocalStorage.getItem(key);
-      const favorites = storedFavorites ? safeJsonParse<string[]>(storedFavorites, []) : [];
-      
-      const newFavorites = favorites.filter(id => id !== channelId);
-      safeLocalStorage.setItem(key, JSON.stringify(newFavorites));
-      
-      return newFavorites;
-    } catch (error) {
-      logError(error, 'safeFavorites.remove');
-      return [];
-    }
-  },
-  
-  get: (userId: string): string[] => {
-    try {
-      const key = `mt_media_favorites_${userId}`;
-      const storedFavorites = safeLocalStorage.getItem(key);
-      return storedFavorites ? safeJsonParse<string[]>(storedFavorites, []) : [];
-    } catch (error) {
-      logError(error, 'safeFavorites.get');
-      return [];
-    }
-  },
-  
-  toggle: (userId: string, channelId: string): string[] => {
-    try {
-      const favorites = safeFavorites.get(userId);
-      
-      if (favorites.includes(channelId)) {
-        return safeFavorites.remove(userId, channelId);
-      } else {
-        return safeFavorites.add(userId, channelId);
-      }
-    } catch (error) {
-      logError(error, 'safeFavorites.toggle');
-      return [];
-    }
-  }
-};
+}

@@ -16,7 +16,45 @@ const RemoteControlOverlay: React.FC<RemoteControlOverlayProps> = ({ isVisible, 
     registerFullscreenToggle
   } = useKeyboardNavigation();
   
+  // Añadir estado para rastrear si está en pantalla completa
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+  
+  // Detectar cambios en el estado de pantalla completa
+  React.useEffect(() => {
+    const handleFullscreenChange = () => {
+      const fullscreenElement = 
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement ||
+        (document as any).msFullscreenElement;
+      
+      setIsFullscreen(!!fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+  
   if (!isVisible) return null;
+  
+  // Añadir referencias a las funciones de control
+  const handleFullscreen = () => {
+    if (typeof registerFullscreenToggle === 'function') {
+      const fullscreenToggle = registerFullscreenToggle(() => {});
+      if (typeof fullscreenToggle === 'function') {
+        fullscreenToggle();
+      }
+    }
+  };
   
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
@@ -112,9 +150,10 @@ const RemoteControlOverlay: React.FC<RemoteControlOverlayProps> = ({ isVisible, 
             className="aspect-square flex flex-col items-center justify-center"
             color="default"
             variant="flat"
+            onPress={handleFullscreen}
           >
-            <Icon icon="lucide:maximize" className="text-2xl" />
-            <span className="text-xs mt-1">Fullscreen</span>
+            <Icon icon={isFullscreen ? "lucide:minimize" : "lucide:maximize"} className="text-2xl" />
+            <span className="text-xs mt-1">{isFullscreen ? "Minimizar" : "Fullscreen"}</span>
           </Button>
         </div>
         

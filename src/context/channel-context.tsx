@@ -4,10 +4,12 @@ import { channels as initialChannels } from "../data/channels";
 import { fetchChannels } from "../services/api";
 import { safeLocalStorage, safeJsonParse, logError } from "../utils/error-handler";
 import { useAuth } from "./auth-context";
+import { sortChannelsByName } from "../utils/category-utils";
 
 // Definir estas constantes explícitamente al principio del archivo
 const LAST_CHANNEL_KEY = "mt_media_last_channel";
 const FAVORITES_KEY = "mt_media_favorites";
+const LAST_CATEGORY_KEY = "mt_media_last_category";
 
 interface ChannelContextType {
   channels: Channel[];
@@ -23,6 +25,7 @@ interface ChannelContextType {
   getChannelsByCategory: (category: string) => Channel[];
   toggleFavorite: (channel: Channel) => void;
   isFavorite: (channelId: string) => boolean;
+  searchChannels: (query: string) => Channel[];
 }
 
 const ChannelContext = React.createContext<ChannelContextType | undefined>(undefined);
@@ -30,8 +33,19 @@ const ChannelContext = React.createContext<ChannelContextType | undefined>(undef
 export const ChannelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [channels, setChannels] = React.useState<Channel[]>(initialChannels);
+  // Cargar la última categoría seleccionada desde localStorage
+  const [selectedCategory, setSelectedCategory] = React.useState<string>(() => {
+    try {
+      const userCategoryKey = user ? `${LAST_CATEGORY_KEY}_${user.id}` : LAST_CATEGORY_KEY;
+      const savedCategory = safeLocalStorage.getItem(userCategoryKey);
+      return savedCategory || "TODOS"; // Usar "TODOS" como valor predeterminado
+    } catch (error) {
+      logError(error, "ChannelProvider.loadLastCategory");
+      return "TODOS";
+    }
+  });
+  
   const [selectedChannel, setSelectedChannel] = React.useState<Channel | null>(null);
-  const [selectedCategory, setSelectedCategory] = React.useState<string>("ALL");
   const [orientation, setOrientation] = React.useState<'portrait' | 'landscape'>(
     window.innerHeight > window.innerWidth ? 'portrait' : 'landscape'
   );
@@ -95,6 +109,16 @@ export const ChannelProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [channels, user]);
 
+  // Guardar la categoría seleccionada en localStorage
+  React.useEffect(() => {
+    try {
+      const userCategoryKey = user ? `${LAST_CATEGORY_KEY}_${user.id}` : LAST_CATEGORY_KEY;
+      safeLocalStorage.setItem(userCategoryKey, selectedCategory);
+    } catch (error) {
+      logError(error, "ChannelProvider.saveLastCategory");
+    }
+  }, [selectedCategory, user]);
+
   // Mejorar la función setSelectedChannel para asegurar que el canal esté habilitado
   const handleSelectChannel = React.useCallback((channel: Channel) => {
     if (channel && channel.enabled) {
@@ -110,6 +134,39 @@ export const ChannelProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
     }
   }, [user]);
+
+  // Cargar canales desde la API o datos locales según la configuración
+  React.useEffect(() => {
+    const loadChannels = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const fetchedChannels = await fetchChannels();
+        
+        if (fetchedChannels && fetchedChannels.length > 0) {
+          // Ordenar canales por nombre y luego por ID
+          const sortedChannels = sortChannelsByName(fetchedChannels);
+          setChannels(sortedChannels);
+          
+          // Si no hay canal seleccionado, seleccionar el primero habilitado
+          if (!selectedChannel) {
+            const enabledChannels = sortedChannels.filter(c => c.enabled);
+            if (enabledChannels.length > 0) {
+              handleSelectChannel(enabledChannels[0]);
+            }
+          }
+        }
+      } catch (error) {
+        logError(error, "ChannelProvider.loadChannels");
+        setError("Error al cargar los canales. Por favor, intente nuevamente más tarde.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadChannels();
+  }, []);
 
   // Función para añadir/quitar de favoritos - Corregir la lógica para quitar favoritos
   const toggleFavorite = React.useCallback((channel: Channel) => {
@@ -149,11 +206,11 @@ export const ChannelProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const categories = React.useMemo(() => {
     const categoryMap = new Map<string, number>();
     
-    // Add ALL category with total count
-    categoryMap.set("ALL", channels.length);
+    // Add FAVORITO category first with count of favorites
+    categoryMap.set("FAVORITO", favoriteChannels.length);
     
-    // Add FAVOURITE category with count of favorites
-    categoryMap.set("FAVOURITE", favoriteChannels.length);
+    // Add TODOS category with total count (cambiado de ALL a TODOS)
+    categoryMap.set("TODOS", channels.length);
     
     // Count channels per category
     channels.forEach(channel => {
@@ -164,27 +221,56 @@ export const ChannelProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
     });
     
-    // Convert map to array of objects
-    return Array.from(categoryMap.entries()).map(([name, count]) => ({
-      name,
-      count
-    }));
+    // Convert map to array of objects and sort alphabetically
+    // But keep FAVORITO and TODOS at the beginning
+    return Array.from(categoryMap.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => {
+        // Keep FAVORITO and TODOS at the top
+        if (a.name === "FAVORITO") return -1;
+        if (b.name === "FAVORITO") return 1;
+        if (a.name === "TODOS") return -1;
+        if (b.name === "TODOS") return 1;
+        // Sort the rest alphabetically
+        return a.name.localeCompare(b.name);
+      });
   }, [channels, favoriteChannels]);
 
   // Get channels by category
   const getChannelsByCategory = React.useCallback((category: string) => {
-    if (category === "ALL") {
-      return channels;
+    let result: Channel[];
+    
+    if (category === "TODOS") { // Cambiado de ALL a TODOS
+      result = channels;
+    } else if (category === "FAVORITO") {
+      result = favoriteChannels;
+    } else {
+      result = channels.filter(channel => 
+        channel.category.some(cat => cat.toUpperCase() === category)
+      );
     }
     
-    if (category === "FAVOURITE") {
-      return favoriteChannels;
-    }
-    
-    return channels.filter(channel => 
-      channel.category.some(cat => cat.toUpperCase() === category)
-    );
+    // Ordenar primero por nombre y luego por ID
+    return result.sort((a, b) => {
+      // Primero ordenar por nombre
+      const nameComparison = a.name.localeCompare(b.name);
+      // Si los nombres son iguales, ordenar por ID
+      if (nameComparison === 0) {
+        return a.id - b.id;
+      }
+      return nameComparison;
+    });
   }, [channels, favoriteChannels]);
+
+  // Añadir función para buscar canales por nombre
+  const searchChannels = React.useCallback((query: string) => {
+    if (!query.trim()) return channels;
+    
+    const normalizedQuery = query.toLowerCase().trim();
+    return channels.filter(channel => 
+      channel.name.toLowerCase().includes(normalizedQuery)
+    );
+  }, [channels]);
 
   const value = {
     channels,
@@ -199,7 +285,8 @@ export const ChannelProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSelectedCategory,
     getChannelsByCategory,
     toggleFavorite,
-    isFavorite
+    isFavorite,
+    searchChannels // Exportar la nueva función
   };
 
   return (

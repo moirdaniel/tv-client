@@ -4,15 +4,48 @@
 
 html, body, #root {
   height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+  width: 100%;
+  overscroll-behavior: none; /* Prevenir pull-to-refresh en móviles */
 }
 
 body {
+  margin: 0;
+  padding: 0;
   background-color: #000a1f;
   color: white;
   font-family: 'Inter', sans-serif;
+  overflow: hidden; /* Prevenir scroll en la página principal */
+}
+
+/* Añadir estilos para optimizar la experiencia en pantalla completa */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overscroll-behavior: none; /* Prevenir pull-to-refresh en móviles */
+}
+
+/* Estilos para el modo landscape forzado */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .force-landscape-container {
+    transform: rotate(-90deg);
+    transform-origin: left top;
+    width: 100vh;
+    height: 100vw;
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
+}
+
+/* Mejorar la visualización en dispositivos móviles */
+@media screen and (max-width: 768px) {
+  .video-player-container {
+    min-height: 40vh; /* Asegurar altura mínima en móviles */
+  }
+  
+  .channel-list {
+    max-height: 60vh; /* Limitar altura de la lista de canales en móviles */
+  }
 }
 
 /* Prevenir zoom en dispositivos móviles */
@@ -151,4 +184,29 @@ body {
 
 .video-controls:hover {
   opacity: 1;
+}
+
+/* Asegurar que los botones de control sean siempre visibles */
+.video-player-container {
+  position: relative;
+}
+
+.video-player-container .absolute {
+  width: 100%;
+}
+
+/* Hacer los controles más responsivos */
+@media (max-width: 480px) {
+  .video-player-container .flex-wrap {
+    justify-content: center;
+    gap: 2px !important;
+  }
+  
+  .video-player-container .text-xs {
+    font-size: 0.65rem;
+  }
+  
+  .video-player-container button {
+    padding: 4px !important;
+  }
 }

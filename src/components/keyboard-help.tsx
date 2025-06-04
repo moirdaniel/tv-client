@@ -1,10 +1,19 @@
 import React from "react";
 import { Icon } from "@iconify/react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@heroui/react";
+import { useKeyboardNavigation } from "./keyboard-navigation";
 
 const KeyboardHelp: React.FC = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-
+  const { registerHelpToggle } = useKeyboardNavigation();
+  
+  // Registrar la función de toggle para la ayuda
+  React.useEffect(() => {
+    registerHelpToggle(() => {
+      onOpen();
+    });
+  }, [registerHelpToggle, onOpen]);
+  
   return (
     <>
       {/* Botón oculto que será activado desde el menú */}

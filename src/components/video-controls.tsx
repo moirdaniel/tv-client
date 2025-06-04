@@ -112,7 +112,7 @@ const VideoControls: React.FC<VideoControlsProps> = ({
               
               <button 
                 onClick={onToggleFullscreen}
-                className="text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+                className="text-white p-2 hover:bg-white/10 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
                 aria-label={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
               >
                 {isFullscreen ? (

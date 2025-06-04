@@ -2,94 +2,46 @@ import React from "react";
 
 interface FullscreenContextType {
   isFullscreen: boolean;
-  toggleFullscreen: () => void;
-  enterFullscreen: (element?: HTMLElement | null) => void;
-  exitFullscreen: () => void;
+  toggleFullscreen: (element?: HTMLElement) => void;
+  setIsFullscreen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const FullscreenContext = React.createContext<FullscreenContextType | undefined>(undefined);
 
 export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
-  const targetRef = React.useRef<HTMLElement | null>(null);
-
+  
+  const toggleFullscreen = React.useCallback((element?: HTMLElement) => {
+    if (!document.fullscreenElement) {
+      // Si no hay elemento en pantalla completa, entrar en pantalla completa
+      const targetElement = element || document.documentElement;
+      if (targetElement.requestFullscreen) {
+        targetElement.requestFullscreen()
+          .then(() => setIsFullscreen(true))
+          .catch(err => console.error(`Error al intentar pantalla completa: ${err.message}`));
+      }
+    } else {
+      // Si ya hay un elemento en pantalla completa, salir
+      if (document.exitFullscreen) {
+        document.exitFullscreen()
+          .then(() => setIsFullscreen(false))
+          .catch(err => console.error(`Error al salir de pantalla completa: ${err.message}`));
+      }
+    }
+  }, []);
+  
   // Detectar cambios en el estado de pantalla completa
   React.useEffect(() => {
     const handleFullscreenChange = () => {
-      const fullscreenElement = 
-        document.fullscreenElement ||
-        (document as any).webkitFullscreenElement ||
-        (document as any).mozFullScreenElement ||
-        (document as any).msFullscreenElement;
-      
-      setIsFullscreen(!!fullscreenElement);
+      setIsFullscreen(!!document.fullscreenElement);
     };
-
+    
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-    };
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
-
-  const enterFullscreen = React.useCallback((element?: HTMLElement | null) => {
-    try {
-      const target = element || targetRef.current || document.documentElement;
-      targetRef.current = target;
-      
-      if (target.requestFullscreen) {
-        target.requestFullscreen();
-      } else if ((target as any).webkitRequestFullscreen) {
-        (target as any).webkitRequestFullscreen();
-      } else if ((target as any).mozRequestFullScreen) {
-        (target as any).mozRequestFullScreen();
-      } else if ((target as any).msRequestFullscreen) {
-        (target as any).msRequestFullscreen();
-      }
-    } catch (error) {
-      console.error('Error entering fullscreen:', error);
-    }
-  }, []);
-
-  const exitFullscreen = React.useCallback(() => {
-    try {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if ((document as any).webkitExitFullscreen) {
-        (document as any).webkitExitFullscreen();
-      } else if ((document as any).mozCancelFullScreen) {
-        (document as any).mozCancelFullScreen();
-      } else if ((document as any).msExitFullscreen) {
-        (document as any).msExitFullscreen();
-      }
-    } catch (error) {
-      console.error('Error exiting fullscreen:', error);
-    }
-  }, []);
-
-  const toggleFullscreen = React.useCallback((element?: HTMLElement | null) => {
-    if (isFullscreen) {
-      exitFullscreen();
-    } else {
-      enterFullscreen(element);
-    }
-  }, [isFullscreen, enterFullscreen, exitFullscreen]);
-
-  const value = React.useMemo(() => ({
-    isFullscreen,
-    toggleFullscreen,
-    enterFullscreen,
-    exitFullscreen
-  }), [isFullscreen, toggleFullscreen, enterFullscreen, exitFullscreen]);
-
+  
   return (
-    <FullscreenContext.Provider value={value}>
+    <FullscreenContext.Provider value={{ isFullscreen, toggleFullscreen, setIsFullscreen }}>
       {children}
     </FullscreenContext.Provider>
   );
@@ -98,7 +50,7 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 export const useFullscreen = () => {
   const context = React.useContext(FullscreenContext);
   if (context === undefined) {
-    throw new Error('useFullscreen must be used within a FullscreenProvider');
+    throw new Error("useFullscreen debe ser usado dentro de un FullscreenProvider");
   }
   return context;
 };

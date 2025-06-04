@@ -130,19 +130,12 @@ const Header: React.FC = () => {
         </div>
         
         <div className="flex ml-2">
-          <Button 
-            isIconOnly
-            variant="light"
-            className="text-white"
-          >
-            <Icon icon="lucide:search" width={24} height={24} />
-          </Button>
           <Dropdown>
             <DropdownTrigger>
               <Button 
                 isIconOnly
                 variant="light"
-                className="text-white mx-2"
+                className="text-white"
               >
                 <Icon icon="lucide:more-vertical" width={24} height={24} />
               </Button>
